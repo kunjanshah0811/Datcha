@@ -85,8 +85,41 @@ text_processor = list(
 # ====================== #
 ui <- navbarPage("Datcha",
                  
+                 # 0. Overview Page
+                 tabPanel("Overview",
+                          fluidPage(
+                            h2("Welcome to Datcha"),
+                            p("This tool compares two social media datasets collected at different times. It identifies removed and edited posts, and analyzes them using natural language processing techniques."),
+                            
+                            hr(),
+                            h4("Steps to Use:"),
+                            tags$ol(
+                              tags$li("Go to 'Data Deletion' tab and upload both datasets with collection dates."),
+                              tags$li("Click 'Compare Datasets' to begin the analysis."),
+                              tags$li("View different tabs for word frequency, sentiment, topic modeling, etc."),
+                              tags$li("See detailed changes under 'Data Edition'.")
+                            ),
+                            
+                            hr(),
+                            h4("Included Features:"),
+                            tags$ul(
+                              tags$li("Removed post detection"),
+                              tags$li("Word frequency and key term analysis"),
+                              tags$li("Sentiment trends"),
+                              tags$li("Topic modeling with LDA"),
+                              tags$li("Text edit distance with visual diff"),
+                              tags$li("Data quality indicators (loss, completeness)")
+                            ),
+                            
+                            hr(),
+                            h4("Reminder:"),
+                            p("Please upload CSVs with a column for unique post IDs and another column named 'text' for content.")
+                          )
+                 ),
+                 
+                 
   # 1. fiRST PAGE
-  tabPanel("Dashboard",
+  tabPanel("Data Deletion",
   fluidPage(
   useShinyjs(), 
   tags$head(
@@ -148,24 +181,32 @@ ui <- navbarPage("Datcha",
      It identifies removed posts based on their IDs and analyzes them using NLP techniques, 
      including word clouds, topic modeling, and sentiment analysis."),
   
-  sidebarLayout(
-    sidebarPanel(
-      # Improved Dataset Selection Section
-      h4("Dataset Comparison"),
-      wellPanel(
-        # Dataset 1
-        fluidRow(
-          column(6, fileInput("file1", "Dataset 1", accept = ".csv", width = "100%")),
-          column(6, dateInput("date1", "Collection Date", value = Sys.Date()-30, width = "100%"))
-        ),
-        # Dataset 2
-        fluidRow(
-          column(6, fileInput("file2", "Dataset 2", accept = ".csv", width = "100%")),
-          column(6, dateInput("date2", "Collection Date", value = Sys.Date(), width = "100%"))
-        ),
+  sidebarPanel(
+    h4("Dataset Comparison"),
+    fluidRow(
+      column(12, fileInput("file1", "Dataset 1 (.csv)", accept = ".csv")),
+      column(6, dateInput("date1", "Collection Date for Dataset 1", value = Sys.Date()-30)),
+      column(6, textInput("id_col_1", "ID Column (optional)", placeholder = "e.g. 'id' or 'tweet_id'"))
+    ),
+    hr(),
+    fluidRow(
+      column(12, fileInput("file2", "Dataset 2 (.csv)", accept = ".csv")),
+      column(6, dateInput("date2", "Collection Date for Dataset 2", value = Sys.Date())),
+      column(6, textInput("id_col_2", "ID Column (optional)", placeholder = "e.g. 'id' or 'tweet_id'"))
+    ),
+    
+    
+    # wellPanel(
+    #   h5("Step 2: Define ID Columns (optional)"),
+    #   p("Default ID columns used are: ", 
+    #     tags$strong("'id', 'tweet_id', 'comment_id'")),
+    #   textInput("id_col_1", "ID column in Dataset 1 (leave blank to auto-detect):"),
+    #   textInput("id_col_2", "ID column in Dataset 2 (leave blank to auto-detect):")
+    # ),
+        
         actionButton("compare", "Compare Datasets", 
-                     class = "btn-primary", width = "100%")
-      ),
+                     class = "btn-primary", width = "100%"),
+      
       
       uiOutput("date_validation_msg"),
       
@@ -191,14 +232,8 @@ ui <- navbarPage("Datcha",
       uiOutput("data_editing_ui"),
       uiOutput("edited_post_ratio"),
       
-      # conditionalPanel(
-      #   condition = "input.tabset == 'Sentiment Analysis'",
-      #   hr(),
-      #   h4("Sentiment Comparison: Dataset 1 vs Dataset 2"),
-      #   tableOutput("dataset_comparison_table") %>% 
-      #     tagAppendAttributes(style = "border: 1px solid #ddd; width: 100%; text-align: center;")
-      # )
-    ),
+),
+    
     
     mainPanel(
       tabsetPanel(
@@ -298,31 +333,36 @@ ui <- navbarPage("Datcha",
                           uiOutput("most_negative_remaining_box")
                    )
                  )
-        ),
-        tabPanel("Text Changes",
-                 fluidRow(
-                   column(12,
-                          # h4("Text Edit Distances Between Datasets"),
-                          # htmlOutput("edit_distance_summary_ui"),
-                          # hr(),
-                          h4("Most Edited Posts"),
-                          dataTableOutput("most_edited_posts"),
-                          # hr(),
-                          # h4("Export Edited Posts"),
-                          # fluidRow(
-                          #   column(6, downloadButton("download_csv", "Download as CSV")),
-                          #   column(6, downloadButton("download_pdf", "Download as PDF"))
-                          # )
-                   )
-                 )
-        ))
+              )
+        
+        )
       )
-    ),
+    
+  )   
         
-        
-        
-      )  # Closing tabsetPanel
-    ) , # Closing mainPanel,
+  
+),
+
+  tabPanel("Data Addition",
+           fluidPage(
+             h3("Upload More Data"),
+             p("Feature coming soon...")
+           )
+  ),
+  tabPanel("Data Edition",
+           fluidPage(
+             tabsetPanel(
+               tabPanel("Text Changes",
+                        fluidRow(
+                          column(12,
+                                 h4("Most Edited Posts"),
+                                 dataTableOutput("most_edited_posts")
+                          )
+                        )
+               )
+             )
+           )
+  ),
   tabPanel("Information",  # <- new page
            fluidPage(
              h2("About Datcha"),
@@ -336,14 +376,16 @@ ui <- navbarPage("Datcha",
              ),
              hr(),
              h4("Credits"),
-             p("Built by Yannik using R and Shiny."),
+             p("Built by Dr Yannik and Kunjan using R and Shiny."),
              p("Packages used: quanteda, sentimentr, topicmodels, diffobj, and more."),
              hr(),
              h4("Contact"),
              p("For support, contact your team lead.")
            )
-  )  # Closing sidebarLayout
-)  # Closing fluidPage
+  )
+  
+  ) # Closing fluidPage
+#) # Closing navbarPage
 
 # ====================== #
 # 4. SERVER LOGIC
@@ -374,15 +416,16 @@ server <- function(input, output) {
   })
   
   # Function to detect the correct ID column
-  detect_id_column <- function(df) {
+  detect_id_column <- function(df, manual_name = NULL) {
     possible_ids <- c("id", "tweet_id", "comment_id")
-    found_id <- intersect(possible_ids, names(df))
-    
-    if (length(found_id) > 0) {
-      return(found_id[1])  # Use the first matching column
-    } else {
-      return(NULL)
+    # if user-specified and it exists, use it
+    if (!is.null(manual_name) && manual_name %in% names(df)) {
+      return(manual_name)
     }
+    # otherwise fall back to first matching
+    found <- intersect(possible_ids, names(df))
+    if (length(found) > 0) return(found[1])
+    NULL
   }
   
   # ===== 4.2 Core Analysis Functions
@@ -463,35 +506,27 @@ server <- function(input, output) {
   # ===== 4.4
   
   # Identify removed posts (present in the first dataset but missing in the second)
-  removed_posts <- eventReactive(input$compare,{
+  removed_posts <- eventReactive(input$compare, {
     req(data1(), data2())
-    df1 <- data1()
-    #write.csv(df1,"C:/Users/KUNJAN SHAH/Desktop/df1.csv", row.names = FALSE )
-    df2 <- data2()
-    #write.csv(df2)
-    
-    id_col_1 <- detect_id_column(df1)
-    id_col_2 <- detect_id_column(df2)
-    
-    # Ensure both datasets contain at least one valid ID column
-    if (is.null(id_col_1) || is.null(id_col_2)) {
-      showNotification("Error: No valid ID column ('id', 'tweet_id', or 'comment_id') found in one or both datasets.", type = "error")
+    df1 <- data1(); df2 <- data2()
+    id1 <- detect_id_column(df1, input$id_col_1)
+    id2 <- detect_id_column(df2, input$id_col_2)
+    if (is.null(id1) || is.null(id2)) {
+      showNotification("No valid ID column found in one or both datasets.", type = "error")
       return(NULL)
     }
-    
-    # Filter posts that are missing in the second dataset
-    removed <- df1 %>% filter(!(!!sym(id_col_1) %in% df2[[id_col_2]]))
-    
-    return(removed)
+    df1 %>% filter(!( !!sym(id1) %in% df2[[id2]] ))
   })
   
   # Get remaining posts
   remaining_posts <- eventReactive(input$compare, {
-    req( data1(), data2())
-    data1() %>% 
-      filter(!!sym(detect_id_column(data1())) %in% data2()[[detect_id_column(data2())]])
+    req(data1(), data2())
+    df1 <- data1(); df2 <- data2()
+    id1 <- detect_id_column(df1, input$id_col_1)
+    id2 <- detect_id_column(df2, input$id_col_2)
+    if (is.null(id1) || is.null(id2)) return(NULL)
+    df1 %>% filter( !!sym(id1) %in% df2[[id2]] )
   })
-  
   
   # 4.5 Summmary stats
   
@@ -536,32 +571,27 @@ server <- function(input, output) {
   
   #-------Levenshtein distance
   # Function to calculate Levenshtein distance between matching posts
-  calculate_edit_distance <- function(df1, df2) {
-    id_col_1 <- detect_id_column(df1)
-    id_col_2 <- detect_id_column(df2)
-    
-    if (is.null(id_col_1) || is.null(id_col_2)) return(NULL)
-    
-    # Get matching posts
+  calculate_edit_distance <- function(df1, df2, manual1 = NULL, manual2 = NULL) {
+    id1 <- detect_id_column(data1(), input$id_col_1)
+    id2 <- detect_id_column(df2, manual2)
+    if (is.null(id1) || is.null(id2)) return(NULL)
     matching <- df1 %>%
-      inner_join(df2, by = setNames(id_col_2, id_col_1),
+      inner_join(df2, by = setNames(id2, id1),
                  suffix = c("_1", "_2"))
-    
-    if (nrow(matching) == 0) return(NULL)
-    
-    # Calculate edit distance for each pair
+    if (!nrow(matching)) return(NULL)
     matching %>%
       mutate(
         edit_distance = stringdist::stringdist(text_1, text_2, method = "lv"),
         normalized_distance = edit_distance / pmax(nchar(text_1), nchar(text_2))
       ) %>%
-      select(!!sym(id_col_1), text_1, text_2, edit_distance, normalized_distance)
+      select(!!sym(id1), text_1, text_2, edit_distance, normalized_distance)
   }
   
   # Calculate edit distances between matching posts
-  edit_distances <- reactive({
+  edit_distances <- eventReactive(input$compare, {
     req(data1(), data2())
-    calculate_edit_distance(data1(), data2())
+    calculate_edit_distance(data1(), data2(),
+                            input$id_col_1, input$id_col_2)
   })
   
   #Reactive Data Editing Section
@@ -589,13 +619,13 @@ server <- function(input, output) {
     
     # Clean assignment without names
     df$text_1 <- unname(mapply(apply_diff, df$text_1, df$text_2, SIMPLIFY = FALSE))
-    print(df$text_1)
+    #print(df$text_1)
     df$text_2 <- unname(mapply(apply_diff, df$text_2, df$text_1, SIMPLIFY = FALSE))
     
     
     datatable(
       data.frame(
-        ID = df[[detect_id_column(df)]],
+        ID = df[[1]],
         Differences = I(df$text_1),
         #text_2 = I(df$text_2),
         Edit_distance = df$edit_distance,
@@ -703,10 +733,9 @@ server <- function(input, output) {
   output$word_freq_plot_remaining <- renderHighchart({
     req(comparison_done(), data1(), data2())
     
-    remaining <- data1() %>% 
-      filter(!!sym(detect_id_column(data1())) %in% data2()[[detect_id_column(data2())]])
-    
-    text_data <- remaining$text
+    # just grab the already‐filtered remaining_posts() df
+    rem <- remaining_posts()
+    text_data <- rem$text
     
     if (is.null(text_data) || length(text_data) == 0) {
       showNotification("Error: No text data found in remaining posts.", type = "error")
@@ -1122,28 +1151,30 @@ server <- function(input, output) {
   
   
   # ===== Topic Modeling ===== #
+  
+  
   # Helper: run LDA on cleaned text (backup helper function)
-  run_lda <- function(text_data, k) {
-    cleaned <- text_processor$clean(text_data, use_stem = FALSE, use_lemma = TRUE)
-    if (length(cleaned) < 5) return(NULL)
-    
-    
-    corpus <- Corpus(VectorSource(cleaned))
-    dtm <- DocumentTermMatrix(corpus)
-    
-    # Find non-empty docs
-    non_empty_docs <- rowSums(as.matrix(dtm)) > 0
-    
-    # Filter both corpus and cleaned text
-    dtm <- dtm[non_empty_docs, ]
-    cleaned <- cleaned[non_empty_docs]
-    
-    
-    
-    if (nrow(dtm) < 5 || ncol(dtm) < 5) return(NULL)
-    tryCatch(LDA(dtm, k = k, control = list(seed = 123, verbose = 0)),
-             error = function(e) NULL)
-  }
+  # run_lda <- function(text_data, k) {
+  #   cleaned <- text_processor$clean(text_data, use_stem = FALSE, use_lemma = TRUE)
+  #   if (length(cleaned) < 5) return(NULL)
+  #   
+  #   
+  #   corpus <- Corpus(VectorSource(cleaned))
+  #   dtm <- DocumentTermMatrix(corpus)
+  #   
+  #   # Find non-empty docs
+  #   non_empty_docs <- rowSums(as.matrix(dtm)) > 0
+  #   
+  #   # Filter both corpus and cleaned text
+  #   dtm <- dtm[non_empty_docs, ]
+  #   cleaned <- cleaned[non_empty_docs]
+  #   
+  #   
+  #   
+  #   if (nrow(dtm) < 5 || ncol(dtm) < 5) return(NULL)
+  #   tryCatch(LDA(dtm, k = k, control = list(seed = 123, verbose = 0)),
+  #            error = function(e) NULL)
+  # }
   
   # Helper: Create JSON for LDAvis easily
   topicmodels_json_ldavis <- function(fitted, text_vector, doc_term) {
@@ -1194,6 +1225,13 @@ server <- function(input, output) {
     )
     
     dataset <- dataset_list[[input$topic_dataset]]
+    # 🔍 DEBUG: Inspect combined dataset
+    if (input$topic_dataset == "Combined View") {
+      print("=== COMBINED DATASET HEAD ===")
+      print(dataset[199:300, ])
+      print("=== GROUP COUNTS ===")
+      print(table(dataset$group))
+    }
     
     if (nrow(dataset) < 5 || all(dataset$text == "")) {
       return(div(class = "alert alert-warning",
